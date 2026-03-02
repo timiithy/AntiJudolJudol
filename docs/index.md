@@ -49,15 +49,15 @@ Analisis Keamanan ⇒ visualisasi tren persebaran judi online dari dashboard sta
 
 ### Entity Relationship Diagram
 
-![Entity Relationship Diagram] (images/erd.png)
+![Entity Relationship Diagram](images/erd.png)
 
 ### Low-fidelity Wireframe
 
-![Lo-Fi Wireframe] (images/wireframe.png)
+![Lo-Fi Wireframe](images/wireframe.png)
 
 ### Gantt-Chart Pengerjaan Proyek dalam Kurun Waktu 1 Semester
 
-![Timeline Pengerjaan Proyek] (images/gantt_chart.png)
+![Timeline Pengerjaan Proyek](images/gantt_chart.png)
 
 
 
