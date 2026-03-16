@@ -1,6 +1,17 @@
+export const dynamic = 'force-dynamic'
+
 async function getData() {
-  const res = await fetch(process.env.NEXT_PUBLIC_API_URL);
-  return res.json();
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) return null;
+    
+    const res = await fetch(apiUrl);
+    if (!res.ok) return null;
+    
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export default async function Home() {
@@ -8,7 +19,7 @@ export default async function Home() {
 
   return (
     <main>
-      <h1>Status: {data.message}</h1>
+      <h1>Status: {data?.message ?? 'Loading...'}</h1>
     </main>
   );
 }
