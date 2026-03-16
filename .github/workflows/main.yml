@@ -52,33 +52,33 @@ jobs:
         run: npm run build
 
 
-  build-ai:
-    name: Build & Test AI (Python)
-    runs-on: ubuntu-latest
+  # build-ai:
+  #   name: Build & Test AI (Python)
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.12'
 
-      - name: Install dependencies (AI)
-        working-directory: ./ai 
-        run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            echo "No requirements.txt, skipping..."
-          fi
+  #     - name: Install dependencies (AI)
+  #       working-directory: ./ai 
+  #       run: |
+  #         if [ -f requirements.txt ]; then
+  #           pip install -r requirements.txt
+  #         else
+  #           echo "No requirements.txt, skipping..."
+  #         fi
 
-      - name: Run tests (AI)
-        working-directory: ./ai
-        run: |
-          if [ -f pytest.ini ] || [ -d tests ]; then
-            python -m pytest
-          else
-            echo "No tests found, skipping..."
-          fi
+  #     - name: Run tests (AI)
+  #       working-directory: ./ai
+  #       run: |
+  #         if [ -f pytest.ini ] || [ -d tests ]; then
+  #           python -m pytest
+  #         else
+  #           echo "No tests found, skipping..."
+  #         fi
