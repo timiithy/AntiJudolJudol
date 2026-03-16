@@ -7,22 +7,78 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+
+  build-backend:
+    name: Build & Test Backend (Node.js)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.10
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (Backend)
+        working-directory: ./backend 
+        run: npm install
+
+      - name: Run tests (Backend)
+        working-directory: ./backend
+        run: npm test
+
+
+  build-frontend:
+    name: Build & Test Frontend (Node.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (Frontend)
+        working-directory: ./frontend  
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+
+  build-ai:
+    name: Build & Test AI (Python)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install dependencies (AI)
+        working-directory: ./ai 
         run: |
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt, skipping..."
+          fi
 
-      - name: Run tests
+      - name: Run tests (AI)
+        working-directory: ./ai
         run: |
-          python -m pytest
+          if [ -f pytest.ini ] || [ -d tests ]; then
+            python -m pytest
+          else
+            echo "No tests found, skipping..."
+          fi
