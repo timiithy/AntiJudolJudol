@@ -8,7 +8,15 @@ const crawlerRoutes = require('./routes/crawler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+const pool = new Pool({
+  host: process.env.PGHOST,
+  port: process.env.PGPORT,
+  user: process.env.PGUSER,
+  password: process.env.PGPASSWORD,
+  database: process.env.PGDATABASE,
+});
+app.locals.db = pool;
+app.use(express.json());
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads');
 }
@@ -26,6 +34,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api/posts', postsRoutes);
 app.use('/api/crawler', crawlerRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
