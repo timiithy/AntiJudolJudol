@@ -21,6 +21,9 @@ frontend/out/
 *.pem
 .vercel
 
+# Upload temp files
+backend/uploads/
+
 # Logs
 *.log
 npm-debug.log*
