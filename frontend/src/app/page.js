@@ -1,3 +1,5 @@
+import Navbar from "@/components/allPage/Navbar";
+
 export const dynamic = 'force-dynamic'
 
 async function getData() {
@@ -19,7 +21,7 @@ export default async function Home() {
 
   return (
     <main>
-      <h1>Status: {data?.message ?? 'Loading...'}</h1>
+      <Navbar />
     </main>
   );
 }
