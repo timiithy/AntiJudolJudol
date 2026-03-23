@@ -13,3 +13,12 @@ P. Atalie Savista Arunata - 23/522436/TK/57668
 Zaki Fadhila Rahman - 23/520148/TK/57327
 
 ---
+
+Framework: Express + React
+
+Konten Dashboard:
+- Total sites
+- Site yang didapatkan per hari ini
+- Top domain
+- Top country
+- Tren harian
