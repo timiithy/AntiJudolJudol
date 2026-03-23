@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const postsRoutes = require('./routes/posts');
 const crawlerRoutes = require('./routes/crawler');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
