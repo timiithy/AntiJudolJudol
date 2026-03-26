@@ -29,7 +29,7 @@ export default function Navbar() {
       >
         <GiShield className="text-[#7B3F1D] text-2xl" />
         <span className="text-[#1A365D] font-bold text-xl tracking-tight">
-          AntiJudolJudol
+          Maxwin77
         </span>
       </div>
 
