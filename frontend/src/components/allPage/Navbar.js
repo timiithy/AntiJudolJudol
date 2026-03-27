@@ -1,62 +1,50 @@
 "use client";
 
-import React from 'react';
-import { GiShield } from 'react-icons/gi'; 
-import { HiDatabase } from 'react-icons/hi'; 
+import Link from 'next/link';
+import { GiShield } from 'react-icons/gi';
+import { HiDatabase } from 'react-icons/hi';
 import { HiOutlinePresentationChartBar, HiOutlineArrowUpTray } from 'react-icons/hi2';
 
 export default function Navbar() {
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   return (
-    <nav className="fixed top-0 left-0 w-full bg-[#FFF5E9] border-b border-[#EEDCC6] z-50 px-8 py-3 flex items-center justify-between shadow-sm">
-      
-      <div 
-        className="flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      >
-        <GiShield className="text-[#7B3F1D] text-2xl" />
-        <span className="text-[#1A365D] font-bold text-xl tracking-tight">
-          Maxwin77
+    <nav className="fixed top-0 left-0 w-full z-50 px-8 py-4 flex items-center justify-between 
+      bg-primary/80 backdrop-blur-md border-b border-secondary/10 shadow-xs">
+
+      {/* Logo */}
+      <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-103 duration-500">
+        <div className="p-2 bg-secondary/10 rounded-xl group-hover:bg-secondary/20 transition-colors">
+          <GiShield className="text-secondary text-2xl" />
+        </div>
+        <span className="font-display font-black text-2xl text-deep-earth tracking-tighter">
+          Maxwin<span className="text-secondary">77</span>
         </span>
-      </div>
+      </Link>
 
-      <div className="flex items-center gap-6">
-        <button 
-          onClick={() => scrollToSection('history')}
-          className="flex items-center gap-2 text-[#4A5568] hover:text-[#7B3F1D] font-medium transition-all group"
+      <div className="flex items-center gap-8">
+        <Link
+          href="#history"
+          className="flex items-center gap-2 text-deep-earth/70 hover:text-secondary font-sans font-semibold text-sm transition-all group"
         >
-          <HiDatabase className="text-xl group-hover:scale-110 transition-transform" />
-          <span>Blacklist Database</span>
-        </button>
-        
-        <button 
-          onClick={() => scrollToSection('statistics')}
-          className="flex items-center gap-2 text-[#4A5568] hover:text-[#7B3F1D] font-medium transition-all group"
-        >
-          <HiOutlinePresentationChartBar className="text-xl group-hover:scale-110 transition-transform" />
-          <span>Statistics</span>
-        </button>
+          <HiDatabase className="text-lg opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+          <span className="tracking-wide">Database</span>
+        </Link>
 
-        <button 
-          onClick={() => scrollToSection('export-data')}
-          className="flex items-center gap-2 bg-[#7B3F1D] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#5E2F16] hover:shadow-lg active:scale-95 transition-all"
+        <Link
+          href="#statistics"
+          className="flex items-center gap-2 text-deep-earth/70 hover:text-secondary font-sans font-semibold text-sm transition-all group"
+        >
+          <HiOutlinePresentationChartBar className="text-lg opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+          <span className="tracking-wide">Statistics</span>
+        </Link>
+
+        <Link
+          href="#export-data"
+          className="flex items-center gap-2 bg-secondary text-primary px-6 py-2.5 rounded-full font-sans font-bold text-sm shadow-md shadow-secondary/20
+            hover:bg-secondary-dark hover:-translate-y-0.5 active:scale-95 transition-all"
         >
           <HiOutlineArrowUpTray className="text-lg" />
-          <span>Export Data</span>
-        </button>
+          <span>Export</span>
+        </Link>
       </div>
     </nav>
   );
