@@ -55,6 +55,7 @@ export default function Hero() {
 
         <button
           onClick={handleScan}
+          suppressHydrationWarning
           className="ml-2 shrink-0 bg-primary text-secondary font-sans font-semibold text-sm px-5 py-2.5 rounded-full transition-all duration-300 ease-in-out cursor-pointer hover:shadow-[0_0_10px_2px_rgba(242,238,232,0.6)] "
         >
           Scan URL
