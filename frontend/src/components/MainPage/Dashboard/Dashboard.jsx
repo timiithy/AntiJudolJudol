@@ -1,5 +1,8 @@
 import React from 'react'
 import Live from './Live'
+import Table from './Table'
+import Charts from './Charts'
+
 
 function HeatmapPlaceholder() {
   return (
@@ -38,33 +41,66 @@ function HeatmapPlaceholder() {
 
 export default function Dashboard() {
   return (
-    <section className="w-full relative min-h-screen py-24 flex flex-col gap-24 overflow-hidden bg-[#F2EEE8]/30">
+    // Mengurangi gap global dari 24 ke 16 agar kontrol jarak lebih presisi di tingkat section
+    <section className="w-full relative min-h-screen py-20 flex flex-col gap-16 overflow-hidden bg-[#F2EEE8]/30">
       
-      {/* backgrounddddd */}
+      {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-150 bg-gradient-radial from-white to-transparent opacity-50 pointer-events-none" />
       <div className="absolute -right-24 top-48 w-96 h-96 bg-[#9E4A36]/5 blur-[100px] rounded-full" />
       <div className="absolute -left-24 bottom-48 w-96 h-96 bg-teal-500/5 blur-[100px] rounded-full" />
 
-      {/* isi */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6">
-        <div className="flex flex-col gap-12 mb-24">
-          <div className="space-y-2 text-center">
+      {/* Main Content Container */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col gap-20">
+        
+        {/* Hero Section: Live Statistics */}
+        <div className="flex flex-col gap-10">
+          <div className="space-y-3 text-center">
             <span className="font-sans text-xs font-bold text-[#9E4A36] uppercase tracking-[0.3em]">Internal Monitor</span>
-            <h2 className="font-display font-black text-7xl text-[#3d2b1f] leading-none">
+            <h2 className="font-display font-black text-6xl md:text-7xl text-[#3d2b1f] leading-tight">
               Live Statistics
             </h2>
           </div>
-          <Live/>
+          <Live />
         </div>
 
-        <div className="flex flex-col gap-8">
-          <div className="flex items-center gap-6">
-            <h2 className="font-display font-bold text-3xl text-[#3d2b1f] whitespace-nowrap">
-              Crawling Activities
-            </h2>
-            <div className="h-1 w-full bg-linear-to-r from-[#9E4A36]/20 to-transparent" />
+        {/* Section Wrapper: Menggunakan gap yang konsisten untuk setiap blok data */}
+        <div className="grid grid-cols-1 gap-16">
+          
+          {/* Crawling Activities */}
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-6">
+              <h2 className="font-display font-bold text-2xl text-[#3d2b1f] whitespace-nowrap">
+                Crawling Activities
+              </h2>
+              <div className="h-0.5 w-full bg-linear-to-r from-[#9E4A36]/20 to-transparent" />
+            </div>
+            <HeatmapPlaceholder />
           </div>
-          <HeatmapPlaceholder />
+
+          {/* Blacklist Database */}
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-6">
+              <h2 className="font-display font-bold text-2xl text-[#3d2b1f] whitespace-nowrap">
+                Blacklist Database
+              </h2>
+              <div className="h-0.5 w-full bg-linear-to-r from-[#9E4A36]/20 to-transparent" />
+            </div>
+            <div className="bg-white/50 rounded-4xl p-2 border border-white/50 shadow-sm">
+               <Table />
+            </div>
+          </div>
+
+          {/* Detection Trends */}
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-6">
+              <h2 className="font-display font-bold text-2xl text-[#3d2b1f] whitespace-nowrap">
+                Detection Trends
+              </h2>
+              <div className="h-0.5 w-full bg-linear-to-r from-[#9E4A36]/20 to-transparent" />
+            </div>
+            <Charts />
+          </div>
+
         </div>
       </div>
     </section>
