@@ -1,0 +1,11 @@
+torch
+transformers
+datasets
+scikit-learn
+numpy
+pandas
+matplotlib
+playwright
+beautifulsoup4
+requests
+lxml
