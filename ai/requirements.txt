@@ -1,11 +1,10 @@
 torch
 transformers
-datasets
-scikit-learn
-numpy
+xgboost
 pandas
-matplotlib
-playwright
+numpy
 beautifulsoup4
 requests
-lxml
+playwright
+urllib3
+scikit-learn
