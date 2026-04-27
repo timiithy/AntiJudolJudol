@@ -1,49 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
-  --secondary:         #9E4A36;
-  --secondary-dark:    #7d3928;
-  --secondary-light:   #b85c45;
-  --deep-earth: #3d2b1f;
+  /* Primary - Cream/Beige */
+  --primary: #f7e0a9;
+  --primary-dim: #e6c98a;
+  --primary-light: #ffebc4;
 
-  --primary:       #F2EEE8;
-  --primary-dim:   #d9d3c9;
+  /* Secondary - Deep Red */
+  --secondary: #a12521;
+  --secondary-dark: #7a1c19;
+  --secondary-light: #b83a35;
 
-  --teal:        #3D7A7A;
-  --teal-dark:   #2A5C5C;
-  --teal-light:  #6BA3A3;
-  --teal-bg:     #EAF2F2;
+  /* Neutral/Dark Text */
+  --deep-earth: #2d1f15;
 
-  --surface:         rgba(242, 238, 232, 0.08);
-  --surface-border: rgba(242, 238, 232, 0.18);
+  /* Teal Accent (opsional, disesuaikan agar complement) */
+  --teal: #3d7a7a;
+  --teal-dark: #2a5c5c;
+  --teal-light: #6ba3a3;
+  --teal-bg: #eaf2f2;
 
+  /* Surface/Overlay */
+  --surface: rgba(161, 37, 33, 0.08);
+  --surface-border: rgba(161, 37, 33, 0.18);
+
+  /* Background & Foreground */
   --background: var(--primary);
   --foreground: var(--secondary);
 }
 
 @theme inline {
-  --color-primary:         var(--primary);
-  --color-primary-dim:     var(--primary-dim);
-  --color-secondary:       var(--secondary);
-  --color-secondary-dark:  var(--secondary-dark);
+  --color-primary: var(--primary);
+  --color-primary-dim: var(--primary-dim);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-secondary-dark: var(--secondary-dark);
   --color-secondary-light: var(--secondary-light);
-  --color-background:      var(--background);
-  --color-foreground:      var(--foreground);
-  --color-teal:            var(--teal);
-  --color-teal-dark:       var(--teal-dark);
-  --color-teal-light:      var(--teal-light);
-  --color-teal-bg:         var(--teal-bg);
-  --color-deep-earth:      var(--deep-earth);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-teal: var(--teal);
+  --color-teal-dark: var(--teal-dark);
+  --color-teal-light: var(--teal-light);
+  --color-teal-bg: var(--teal-bg);
+  --color-deep-earth: var(--deep-earth);
 
   /* Fonts */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-sans:    'DM Sans', sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", sans-serif;
 
   /* Animasi */
   @keyframes shine {
-    from { transform: translateX(-100%) skewX(-15deg); }
-    to { transform: translateX(100%) skewX(-15deg); }
+    from {
+      transform: translateX(-100%) skewX(-15deg);
+    }
+    to {
+      transform: translateX(100%) skewX(-15deg);
+    }
   }
   --animate-shine: shine 1.5s ease-in-out infinite;
 }
@@ -52,7 +65,9 @@
   background-image: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -63,11 +78,14 @@ html {
 body {
   background-color: var(--primary);
   color: var(--secondary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Playfair Display', Georgia, serif;
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Playfair Display", Georgia, serif;
 }

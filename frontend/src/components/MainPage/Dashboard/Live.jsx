@@ -1,48 +1,117 @@
 'use client';
-
-import React from 'react'
+import React from 'react';
 import { BiScan } from "react-icons/bi";
-import { GoCodescanCheckmark, GoShieldCheck  } from "react-icons/go";
+import { GoShieldCheck } from "react-icons/go";
 import { AiOutlineWarning } from "react-icons/ai";
+import { GoCodescanCheckmark } from "react-icons/go";
 
 const stats = [
-  { label: 'Total URLs Scanned',      value: '1,234,356', sub: '+ 1,200 today',       icon: <BiScan size={30} /> },
-  { label: 'Gambling Sites Detected', value: '34,700',    sub: '+ 100 today',          icon: <AiOutlineWarning size={30} /> },
-  { label: 'Verified Safe Sites',     value: '800,000',   sub: '+ 3,491 today',        icon: <GoShieldCheck size={30} /> },
-  { label: 'Active Crawlers',         value: '24/7',      sub: 'All crawlers active',  icon: <GoCodescanCheckmark size={30} /> },
-]
+  {
+    label: 'Total URLs',
+    sublabel: 'Scanned',
+    value: '1,234,356',
+    sub: '+ 1,200 today',
+    badge: 'Live',
+    badgeColor: 'teal',
+    icon: <BiScan size={22} />,
+  },
+  {
+    label: 'Gambling Sites',
+    sublabel: 'Detected',
+    value: '34,700',
+    sub: '+ 100 today',
+    badge: 'Aktif',
+    badgeColor: 'red',
+    icon: <AiOutlineWarning size={22} />,
+  },
+  {
+    label: 'Verified',
+    sublabel: 'Safe Sites',
+    value: '800,000',
+    sub: '+ 3,491 today',
+    badge: 'Aman',
+    badgeColor: 'teal',
+    icon: <GoShieldCheck size={22} />,
+  },
+  {
+    label: 'Active',
+    sublabel: 'Crawlers',
+    value: '24/7',
+    sub: 'All crawlers active',
+    badge: 'Online',
+    badgeColor: 'teal',
+    icon: <GoCodescanCheckmark size={22} />,
+  },
+];
+
+const badgeStyles = {
+  red: 'bg-secondary text-primary',
+  teal: 'bg-teal text-primary',
+  green: 'bg-teal-dark text-primary',
+};
 
 export default function Live() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto w-full px-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="group relative overflow-hidden rounded-3xl border border-[#9E4A36]/10 bg-linear-to-br from-white/80 to-[#F2EEE8]/50 backdrop-blur-xl px-8 py-7 flex items-start justify-between
-            transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(61,43,31,0.15)]
-        ">
-          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-linear-to-r from-transparent via-white/40 to-transparent italic" />
-          
-          <div className="flex flex-col gap-1.5 relative z-10">
-            <span className="font-sans text-[10px] font-bold text-[#9E4A36]/60 uppercase tracking-[0.2em]">
-              {stat.label}
-            </span>
-            <span className="font-display font-black text-4xl text-[#3d2b1f] tracking-tight group-hover:text-[#9E4A36] transition-colors">
-              {stat.value}
-            </span>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
-              <span className="font-sans text-xs text-teal-700/60 font-medium">
-                {stat.sub}
-              </span>
+    <section className="w-full py-20 px-6">
+      {/* Header Section */}
+      <div className="text-center mb-14">
+        <span className="font-sans text-[10px] font-bold tracking-[0.3em] uppercase text-secondary/50 block mb-3">
+          Live Statistics
+        </span>
+        <h2 className="font-display font-black text-4xl sm:text-5xl text-deep-earth tracking-tight">
+          Statistik <span className="italic text-secondary">Real-time</span>
+        </h2>
+      </div>
+
+      {/* Grid Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {stats.map((stat, i) => (
+          <div
+            key={i}
+            className="group relative rounded-3xl overflow-hidden border border-secondary/10 bg-primary shadow-sm"
+          >
+            {/* Red Arch Background */}
+            <div className="absolute top-0 left-0 right-0 h-[75%] bg-secondary rounded-b-[50%] z-0" />
+
+            {/* Card Content */}
+            <div className="relative z-10 px-8 pt-8 pb-6 flex flex-col h-full">
+              
+              {/* Top: Icon & Sublabel */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="text-primary/90">
+                  {stat.icon}
+                </div>
+                <span className="font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-primary/60 mt-1">
+                  {stat.sublabel}
+                </span>
+              </div>
+
+              {/* Middle: Label & Value */}
+              <div className="text-center my-auto">
+                <p className="font-sans text-[10px] font-bold uppercase tracking-[0.15em] text-primary/70">
+                  {stat.label}
+                </p>
+                <span className="font-display font-black italic text-5xl text-primary leading-none drop-shadow-md">
+                  {stat.value}
+                </span>
+              </div>
+
+              {/* Bottom: Sub & Badge */}
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-primary/10">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_rgba(161,37,33,0.6)]" />
+                  <span className="font-sans text-xs text-deep-earth/70 font-medium">
+                    {stat.sub}
+                  </span>
+                </div>
+                <span className={`font-sans text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide ${badgeStyles[stat.badgeColor]}`}>
+                  {stat.badge}
+                </span>
+              </div>
             </div>
           </div>
-
-          <div className="text-[#3d2b1f]/20 group-hover:text-[#9E4A36]/80 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 my-auto p-3 bg-[#F2EEE8] rounded-2xl border border-white">
-            {stat.icon}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+        ))}
+      </div>
+    </section>
+  );
 }
