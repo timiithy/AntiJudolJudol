@@ -40,17 +40,14 @@ from dotenv import load_dotenv
 from predictor import HybridPredictor
 from utils.crawler import scrape_site
 
-# Load variabel dari file .env
 load_dotenv()
 
 async def test_terminal():
     print("🚀 Memulai Sistem Anti-Judol (Mode Terminal)...")
     
-    # Ambil konfigurasi dari .env
     repo_id = os.getenv("REPO_ID")
     hf_token = os.getenv("HF_TOKEN")
     
-    # Inisialisasi Predictor (Mendownload model dari HF)
     print("🔄 Menghubungkan ke Hugging Face... Mohon tunggu.")
     predictor = HybridPredictor(repo_id=repo_id, hf_token=hf_token)
     
@@ -63,30 +60,28 @@ async def test_terminal():
             
         print(f"⏳ Sedang menganalisis: {url_input}...")
         
-        # 1. Crawling
         site_data = await scrape_site(url_input)
         
         if site_data['status'] == 'error':
             print(f"❌ Gagal mengambil data: {site_data['error']}")
             continue
             
-        # 2. Prediksi Hybrid
         res = predictor.predict(
             url=site_data['url'], 
             title=site_data['title'], 
             content=site_data['content']
         )
         
-        # 3. Tampilkan Output di Terminal
-        print("\n" + "="*40)
-        print(f"🌐 NAMA WEBSITE : {res['url']}")
-        print(f"📄 TITLE        : {res['title']}")
-        print(f"⚖️  KEPUTUSAN    : {res['decision']}")
+        print("\n" + "="*45)
+        print(f"🌐 WEBSITE      : {res['url']}")
+        print(f"📅 WAKTU CEK    : {res['detected_at']}") 
+        print(f"⚖️  KEPUTUSAN   : {res['decision']}")
+        print(f"📂 KATEGORI     : {res['category']}") 
         print(f"📊 SKOR AI      : {res['score']}")
-        print(f"⚠️  LEVEL RISIKO : {res['risk_level']}")
-        print(f"🤖 METODE AI    : {res['method_used']}")
-        print(f"🔑 KEYWORDS     : {', '.join(res['detected_keywords'])}")
-        print("="*40)
+        print(f"⚠️  RISIKO       : {res['risk_level']}")
+        print(f"🤖 METODE       : {res['method_used']}")
+        print(f"🔑 KEYWORDS     : {', '.join(res['detected_keywords'][:10])}")
+        print("="*45)
 
 if __name__ == "__main__":
     asyncio.run(test_terminal())
