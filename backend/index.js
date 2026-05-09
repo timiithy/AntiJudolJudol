@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const { Pool } = require('pg');
 require('dotenv').config();
 
 const postsRoutes = require('./routes/posts');
 const crawlerRoutes = require('./routes/crawler');
 const dashboardRoutes = require('./routes/dashboard');
+const urlRoutes = require('./routes/url');
+const sitesRoutes = require('./routes/sites');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +39,8 @@ app.get('/', (req, res) => {
 app.use('/api/posts', postsRoutes);
 app.use('/api/crawler', crawlerRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/check-url', urlRoutes);
+app.use('/api/sites', sitesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
