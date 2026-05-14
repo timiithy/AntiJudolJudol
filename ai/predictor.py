@@ -57,14 +57,24 @@ class HybridPredictor:
         return mapping[winning_key]
 
     def predict(self, url, title, content):
-        # Preprocessing fitur XGBoost
+        # Preprocessing fitur
         features, keywords = self.preprocessor.extract_features(url, title, content)
-        feat_df = pd.DataFrame([features])
+        
+        # Pastikan URUTAN KOLOM sesuai yang diminta XGBoost
+        column_order = [
+            'total_keywords', 'num_digits_url', 'url_depth', 'is_suspicious_tld', 
+            'has_judi_url', 'is_gov', 'word_count', 'kw_density', 
+            'togel', 'slot', 'judi_casino', 'betting', 'transaksi', 'platform'
+        ]
+        
+        # Buat DataFrame dengan urutan kolom yang spesifik
+        feat_df = pd.DataFrame([features])[column_order]
         
         # 1. Cek Skor XGBoost
         xgb_score = self.xgb_model.predict_proba(feat_df)[0][1]
         
         # 2. Hybrid Logic
+        # (Sisa kode ke bawah tetap sama seperti sebelumnya...)
         if xgb_score > 0.90 or xgb_score < 0.10:
             final_score = xgb_score
             method = "XGBoost (Fast Track)"
@@ -77,19 +87,13 @@ class HybridPredictor:
             method = "IndoBERT (Deep Analysis)"
 
         decision = "JUDI ONLINE" if final_score > 0.5 else "NORMAL"
-        
-        # Ditaruh di FE nanti
         category = self._determine_category(features) if decision == "JUDI ONLINE" else "Safe Site"
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         return {
-            "url": url,
-            "title": title,
-            "decision": decision,
-            "category": category,
-            "score": round(final_score, 4),
+            "url": url, "title": title, "decision": decision,
+            "category": category, "score": round(final_score, 4),
             "risk_level": self.get_risk_level(final_score),
-            "method_used": method,
-            "detected_keywords": keywords,
+            "method_used": method, "detected_keywords": keywords,
             "detected_at": timestamp
         }
