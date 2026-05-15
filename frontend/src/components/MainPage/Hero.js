@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 // Komponen Kartu Floating
 function FloatingCard({ src, className, delay = 0 }) {
   return (
@@ -114,28 +115,77 @@ function ScanningOverlay({ url, onCancel }) {
 export default function Hero() {
   const [url, setUrl] = useState('')
   const [isScanning, setIsScanning] = useState(false)
+  const [scanError, setScanError] = useState('')
   const router = useRouter()
 
-  // ✅ FIX: Tambahkan parameter 'e' dan panggil e.preventDefault()
-  const handleScan = (e) => {
-    e.preventDefault() // Mencegah browser navigasi ke URL input secara default
-    
-    if (!url.trim()) return
-    
-    // 1. Mulai proses scanning
-    setIsScanning(true)
+const handleScan = async (e) => {
+  e.preventDefault()
+  if (!url.trim()) return
 
-    // 2. Simulasi delay AI scanning (2.5-3.5 detik)
-    const scanDuration = 2500 + Math.random() * 1000
+  setIsScanning(true)
+  setScanError('')
+
+  try {
+    console.log('[handleScan] Starting scan for URL:', url.trim())
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 detik timeout
+
+    const res = await fetch(`${BACKEND_URL}/api/check-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.trim() }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+    console.log('[handleScan] Response status:', res.status)
+
+    const jsonResponse = await res.json()
+    console.log('[handleScan] Response data:', jsonResponse)
+
+    if (!res.ok) {
+      const errorMessage = jsonResponse.message || 'Terjadi kesalahan pada server'
+      console.error('[handleScan] Backend error:', errorMessage)
+      throw new Error(errorMessage)
+    }
+
+    const data = jsonResponse
+    if (!data || typeof data !== 'object' || !data.url) {
+      console.error('[handleScan] Invalid response structure:', data)
+      throw new Error('Respons server tidak valid. Coba lagi.')
+    }
+
+    console.log('[handleScan] Preparing navigation with data:', data)
+
+    const params = new URLSearchParams({
+      url: data.url || url.trim(),
+      status: data.is_gambling ? 'Tidak Aman' : 'Aman',
+      risk_score: data.risk_score ?? 0,
+      risk_level: data.risk_level ?? 'Rendah',
+      category: data.category ?? 'Safe Site',
+      keywords: (data.detected_keywords || []).join(','),
+      detected_at: data.detected_at ?? '',
+    })
+
+    console.log('[handleScan] Navigating to /result with params')
+    await router.push(`/result?${params.toString()}`)
     
-    setTimeout(() => {
-      // 3. Setelah "selesai", redirect ke halaman result (BUKAN ke URL input)
-      router.push(`/result?url=${encodeURIComponent(url)}`)
-    }, scanDuration)
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      console.error('[handleScan] Request timeout')
+      setScanError('Permintaan timeout. Server terlalu lama merespons.')
+    } else {
+      console.error('[handleScan] Error occurred:', err)
+      setScanError(err.message || 'Gagal menghubungi server')
+    }
+  } finally {
+    setIsScanning(false)
   }
+}
 
   const handleCancel = () => {
     setIsScanning(false)
+    setScanError('')
   }
 
   return (
@@ -229,6 +279,11 @@ export default function Hero() {
               </button>
               
             </form>
+            {scanError ? (
+              <p className="mt-3 text-sm text-red-500 font-sans max-w-sm">
+                {scanError}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
