@@ -40,6 +40,7 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/crawler', crawlerRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/check-url', urlRoutes);
+app.use('/api/classify', urlRoutes); // Alias untuk compatibility dengan AI endpoint naming
 app.use('/api/sites', sitesRoutes);
 
 app.listen(PORT, () => {
