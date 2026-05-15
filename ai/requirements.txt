@@ -8,3 +8,10 @@ requests
 playwright
 urllib3
 scikit-learn
+fastapi
+uvicorn
+python-dotenv
+joblib
+huggingface_hub
+accelerate
+lxml

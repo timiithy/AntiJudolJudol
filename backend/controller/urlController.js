@@ -1,9 +1,10 @@
 const { v4: uuidv4 } = require("uuid");
+const axios = require("axios");
+
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
 
 /**
  * POST /api/check-url
- * User submits a suspicious URL
- * System checks if it's gambling site or safe site
  */
 const checkUrl = async (req, res) => {
   const db = req.app.locals.db;
@@ -17,89 +18,123 @@ const checkUrl = async (req, res) => {
   const id_process = uuidv4();
 
   try {
-    // 1. Insert into url_submission
-    const qInsertSubmission = `
-      INSERT INTO url_submission (id_submission, url)
-      VALUES ($1, $2)
-      RETURNING id_submission, url
-    `;
-    const submissionRes = await db.query(qInsertSubmission, [id_submission, url.trim()]);
+    console.log("[checkUrl] Processing URL:", url.trim());
 
-    // 2. Call AI predictor to check if gambling site (integrate with AI module)
-    // For now, we'll use a placeholder. In production, call AI predictor
-    const isGamblingSite = await predictGamblingSite(url);
-    const riskScore = isGamblingSite ? 0.85 : 0.15; // Placeholder scores
-    const htmlTitle = "Sample Title"; // Would come from actual scraping
+    // 2. Panggil AI service terlebih dahulu
+    let aiResult;
+    try {
+      console.log("[checkUrl] Calling AI service at:", AI_SERVICE_URL);
+      const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/classify`, { url: url.trim() });
+      console.log("[checkUrl] AI response received:", JSON.stringify(aiResponse.data));
 
-    // 3. Insert into result table
-    const qInsertResult = `
-      INSERT INTO result (id_process, id_submission, html_title, risk_score)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id_process, html_title, risk_score
-    `;
-    const resultRes = await db.query(qInsertResult, [id_process, id_submission, htmlTitle, riskScore]);
+      if (aiResponse.data.status === "error") {
+        return res.status(422).json({ message: aiResponse.data.message || "AI gagal memproses URL" });
+      }
 
-    // 4. Based on risk_score threshold, insert into situs_judol or situs_aman
-    let siteType = "safe";
-    const riskThreshold = 0.5;
+      // Validasi struktur response AI
+      aiResult = aiResponse.data.results;
+      if (!aiResult || typeof aiResult !== "object") {
+        console.error("[checkUrl] Invalid AI response structure:", aiResult);
+        return res.status(422).json({ message: "AI returned invalid structure" });
+      }
 
-    if (riskScore >= riskThreshold) {
-      siteType = "gambling";
-      const qInsertJudol = `
-        INSERT INTO situs_judol (id_process)
-        VALUES ($1)
-        ON CONFLICT DO NOTHING
-      `;
-      await db.query(qInsertJudol, [id_process]);
-
-      // Optional: Add keywords for gambling sites
-      // For now, extracting domain as a simple keyword
-      const domain = new URL(url).hostname;
-      const qInsertKeyword = `
-        INSERT INTO keywords (keyword, id_sitejudol)
-        VALUES ($1, $2)
-      `;
-      await db.query(qInsertKeyword, [domain, id_process]);
-    } else {
-      const qInsertAman = `
-        INSERT INTO situs_aman (id_process)
-        VALUES ($1)
-        ON CONFLICT DO NOTHING
-      `;
-      await db.query(qInsertAman, [id_process]);
+      console.log("[checkUrl] AI result validated successfully");
+    } catch (aiErr) {
+      console.error("[checkUrl] AI service error:", aiErr.message);
+      if (aiErr.response?.data) {
+        console.error("[checkUrl] AI error response:", aiErr.response.data);
+      }
+      return res.status(503).json({ message: "AI service tidak tersedia, coba lagi nanti" });
     }
 
-    return res.status(201).json({
+    // Extract data dengan fallback values
+    const decision = aiResult.decision || "NORMAL";
+    const isGambling = decision === "JUDI ONLINE";
+    const riskScore = aiResult.score ?? 0;
+    const htmlTitle = aiResult.title || "N/A";
+    const riskLevel = aiResult.risk_level || "Rendah";
+    const category = aiResult.category || "Uncategorized";
+    const detectedKeywords = aiResult.detected_keywords || [];
+    const detectedAt = aiResult.detected_at || new Date().toISOString();
+    const methodUsed = aiResult.method_used || "hybrid";
+
+    console.log("[checkUrl] AI Result parsed - isGambling:", isGambling, "score:", riskScore);
+
+    // Database operations - optional, boleh gagal tanpa mempengaruhi response ke user
+    try {
+      // 1. Insert ke url_submission
+      await db.query(
+        `INSERT INTO url_submission (id_submission, url) VALUES ($1, $2)`,
+        [id_submission, url.trim()]
+      );
+      console.log("[checkUrl] URL submission recorded:", id_submission);
+
+      // 3. Insert ke result
+      await db.query(
+        `INSERT INTO result (id_process, id_submission, html_title, risk_score) VALUES ($1, $2, $3, $4)`,
+        [id_process, id_submission, htmlTitle, riskScore]
+      );
+      console.log("[checkUrl] Result recorded:", id_process);
+
+      // 4. Insert ke situs_judol atau situs_aman
+      if (isGambling) {
+        await db.query(
+          `INSERT INTO situs_judol (id_process) VALUES ($1) ON CONFLICT DO NOTHING`,
+          [id_process]
+        );
+        console.log("[checkUrl] Marked as gambling site");
+
+        // 5. Simpan keywords yang terdeteksi
+        for (const kw of detectedKeywords.slice(0, 20)) {
+          try {
+            await db.query(
+              `INSERT INTO keywords (keyword, id_sitejudol) VALUES ($1, $2)`,
+              [kw, id_process]
+            );
+          } catch (kwErr) {
+            console.warn("[checkUrl] Failed to insert keyword:", kw, kwErr.message);
+          }
+        }
+      } else {
+        await db.query(
+          `INSERT INTO situs_aman (id_process) VALUES ($1) ON CONFLICT DO NOTHING`,
+          [id_process]
+        );
+        console.log("[checkUrl] Marked as safe site");
+      }
+    } catch (dbErr) {
+      console.warn("[checkUrl] Database operation failed (non-critical):", dbErr.message);
+      // Jangan berhenti di sini, tetap return response ke user
+    }
+
+    // 6. Return hasil lengkap ke FE
+    const responseData = {
       id_submission,
       id_process,
       url: url.trim(),
-      is_gambling: siteType === "gambling",
+      is_gambling: isGambling,
       risk_score: riskScore,
+      risk_level: riskLevel,
+      category,
       html_title: htmlTitle,
-      status: "processed",
-      site_type: siteType,
-    });
+      detected_keywords: detectedKeywords,
+      detected_at: detectedAt,
+      method_used: methodUsed,
+      site_type: isGambling ? "gambling" : "safe",
+    };
+
+    console.log("[checkUrl] Sending response:", JSON.stringify(responseData));
+    return res.status(201).json(responseData);
+
   } catch (error) {
-    console.error("checkUrl error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("[checkUrl] Unexpected error:", error.message);
+    console.error("[checkUrl] Error details:", error.stack);
+    return res.status(500).json({ message: "Internal server error: " + error.message });
   }
 };
 
 /**
- * Placeholder function to predict if URL is a gambling site
- * In production, integrate with AI module at /ai/predictor.py
- */
-const predictGamblingSite = async (url) => {
-  // TODO: Integrate with AI predictor
-  // For now, simple heuristic: if URL contains gambling keywords
-  const gamblingKeywords = ["slot", "casino", "poker", "bet", "gambling", "judol"];
-  const urlLower = url.toLowerCase();
-  return gamblingKeywords.some((keyword) => urlLower.includes(keyword));
-};
-
-/**
  * GET /api/check-url/history
- * Get submission history with pagination
  */
 const getSubmissionHistory = async (req, res) => {
   const db = req.app.locals.db;
@@ -128,10 +163,7 @@ const getSubmissionHistory = async (req, res) => {
     LIMIT $1 OFFSET $2
   `;
 
-  const qCount = `
-    SELECT COUNT(*)::int AS total
-    FROM url_submission
-  `;
+  const qCount = `SELECT COUNT(*)::int AS total FROM url_submission`;
 
   try {
     const [dataRes, countRes] = await Promise.all([
@@ -154,7 +186,4 @@ const getSubmissionHistory = async (req, res) => {
   }
 };
 
-module.exports = {
-  checkUrl,
-  getSubmissionHistory,
-};
+module.exports = { checkUrl, getSubmissionHistory };
