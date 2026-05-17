@@ -38,7 +38,7 @@ const listGamblingSites = async (req, res) => {
     FROM situs_judol sj
     JOIN result r ON r.id_process = sj.id_process
     JOIN url_submission us ON us.id_submission = r.id_submission
-    LEFT JOIN keywords k ON k.id_sitejudol = sj.id_process
+    LEFT JOIN keywords k ON k.id_situsjudol = sj.id_situsjudol
     GROUP BY sj.id_process, us.id_submission, us.url, r.html_title, r.risk_score, us.created_at
     ORDER BY us.created_at DESC NULLS LAST
     LIMIT $1 OFFSET $2
@@ -140,7 +140,7 @@ const exportGamblingSites = async (req, res) => {
     FROM situs_judol sj
     JOIN result r ON r.id_process = sj.id_process
     JOIN url_submission us ON us.id_submission = r.id_submission
-    LEFT JOIN keywords k ON k.id_sitejudol = sj.id_process
+    LEFT JOIN keywords k ON k.id_situsjudol = sj.id_situsjudol
     GROUP BY sj.id_process, us.id_submission, us.url, r.html_title, r.risk_score, us.created_at
     ORDER BY us.created_at DESC NULLS LAST
   `;

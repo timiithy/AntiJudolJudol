@@ -9,22 +9,32 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
 const checkUrl = async (req, res) => {
   const db = req.app.locals.db;
   const { url } = req.body;
+  const normalizedUrl = typeof url === "string" ? url.trim() : "";
 
-  if (!url || typeof url !== "string" || !url.trim()) {
+  if (!normalizedUrl) {
     return res.status(400).json({ message: "URL is required and must be a non-empty string" });
   }
 
-  const id_submission = uuidv4();
-  const id_process = uuidv4();
+  let id_submission;
+  let id_process;
+  let id_situs_judol;
 
   try {
-    console.log("[checkUrl] Processing URL:", url.trim());
+    console.log("[checkUrl] Processing URL:", normalizedUrl);
 
-    // 2. Panggil AI service terlebih dahulu
+    // Save the submission immediately so the URL is not lost if classification fails.
+    const submissionResult = await db.query(
+      `INSERT INTO url_submission (url) VALUES ($1) RETURNING id_submission`,
+      [normalizedUrl]
+    );
+    id_submission = submissionResult.rows[0].id_submission;
+    console.log("[checkUrl] URL submission recorded:", id_submission);
+
+    // 2. Panggil AI service untuk klasifikasi
     let aiResult;
     try {
       console.log("[checkUrl] Calling AI service at:", AI_SERVICE_URL);
-      const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/classify`, { url: url.trim() });
+      const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/classify`, { url: normalizedUrl });
       console.log("[checkUrl] AI response received:", JSON.stringify(aiResponse.data));
 
       if (aiResponse.data.status === "error") {
@@ -60,58 +70,62 @@ const checkUrl = async (req, res) => {
 
     console.log("[checkUrl] AI Result parsed - isGambling:", isGambling, "score:", riskScore);
 
-    // Database operations - optional, boleh gagal tanpa mempengaruhi response ke user
+    // Persist classification atomically.
+    const client = await db.connect();
     try {
-      // 1. Insert ke url_submission
-      await db.query(
-        `INSERT INTO url_submission (id_submission, url) VALUES ($1, $2)`,
-        [id_submission, url.trim()]
-      );
-      console.log("[checkUrl] URL submission recorded:", id_submission);
+      await client.query("BEGIN");
 
-      // 3. Insert ke result
-      await db.query(
-        `INSERT INTO result (id_process, id_submission, html_title, risk_score) VALUES ($1, $2, $3, $4)`,
-        [id_process, id_submission, htmlTitle, riskScore]
+      const resultRecord = await client.query(
+        `INSERT INTO result (id_submission, html_title, risk_score) VALUES ($1, $2, $3) RETURNING id_process`,
+        [id_submission, htmlTitle, riskScore]
       );
+      id_process = resultRecord.rows[0].id_process;
       console.log("[checkUrl] Result recorded:", id_process);
 
-      // 4. Insert ke situs_judol atau situs_aman
       if (isGambling) {
-        await db.query(
-          `INSERT INTO situs_judol (id_process) VALUES ($1) ON CONFLICT DO NOTHING`,
-          [id_process]
+        id_situs_judol = uuidv4();
+        await client.query(
+          `INSERT INTO situs_judol (id_situsjudol, id_process) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [id_situs_judol, id_process]
         );
-        console.log("[checkUrl] Marked as gambling site");
+        console.log("[checkUrl] Marked as gambling site:", id_situs_judol);
 
-        // 5. Simpan keywords yang terdeteksi
         for (const kw of detectedKeywords.slice(0, 20)) {
           try {
-            await db.query(
-              `INSERT INTO keywords (keyword, id_sitejudol) VALUES ($1, $2)`,
-              [kw, id_process]
+            await client.query(
+              `INSERT INTO keywords (keyword, id_situsjudol) VALUES ($1, $2)`,
+              [kw, id_situs_judol]
             );
           } catch (kwErr) {
             console.warn("[checkUrl] Failed to insert keyword:", kw, kwErr.message);
           }
         }
       } else {
-        await db.query(
+        await client.query(
           `INSERT INTO situs_aman (id_process) VALUES ($1) ON CONFLICT DO NOTHING`,
           [id_process]
         );
         console.log("[checkUrl] Marked as safe site");
       }
+
+      await client.query("COMMIT");
     } catch (dbErr) {
-      console.warn("[checkUrl] Database operation failed (non-critical):", dbErr.message);
-      // Jangan berhenti di sini, tetap return response ke user
+      await client.query("ROLLBACK");
+      console.error("[checkUrl] Database operation failed:", dbErr.message);
+      return res.status(500).json({
+        message: "Gagal menyimpan hasil ke database",
+        id_submission,
+        url: normalizedUrl,
+      });
+    } finally {
+      client.release();
     }
 
-    // 6. Return hasil lengkap ke FE
+    // 3. Return hasil lengkap ke FE
     const responseData = {
       id_submission,
       id_process,
-      url: url.trim(),
+      url: normalizedUrl,
       is_gambling: isGambling,
       risk_score: riskScore,
       risk_level: riskLevel,
@@ -121,6 +135,7 @@ const checkUrl = async (req, res) => {
       detected_at: detectedAt,
       method_used: methodUsed,
       site_type: isGambling ? "gambling" : "safe",
+      id_situsjudol: id_situs_judol,
     };
 
     console.log("[checkUrl] Sending response:", JSON.stringify(responseData));

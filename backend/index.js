@@ -1,8 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const { Pool } = require('pg');
-require('dotenv').config();
+
+const dotenvPath = path.resolve(__dirname, '..', '.env');
+require('dotenv').config({ path: dotenvPath });
+if (!process.env.PGHOST) {
+  require('dotenv').config();
+}
 
 const postsRoutes = require('./routes/posts');
 const crawlerRoutes = require('./routes/crawler');
@@ -18,6 +24,7 @@ const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   database: process.env.PGDATABASE,
+  ssl: { rejectUnauthorized: false },
 });
 app.locals.db = pool;
 app.use(express.json());

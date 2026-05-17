@@ -3,14 +3,15 @@ from pydantic import BaseModel
 from predictor import HybridPredictor
 from .utils.crawler import scrape_site
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).with_name(".env"), override=False)
 
 app = FastAPI()
 
 # Ganti dengan repo HF kamu
-REPO_ID = "username/anti-judol-classifier" 
+REPO_ID = os.getenv("REPO_ID") or "username/anti-judol-classifier"
 HF_TOKEN = os.getenv("HF_TOKEN") # Ambil dari .env jika private
 
 # Inisialisasi model saat startup agar tidak berat di tiap request
