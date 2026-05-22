@@ -42,13 +42,16 @@ const checkUrl = async (req, res) => {
       }
 
       // Validasi struktur response AI
-      aiResult = aiResponse.data.results;
+      aiResult = aiResponse.data;
       if (!aiResult || typeof aiResult !== "object") {
-        console.error("[checkUrl] Invalid AI response structure:", aiResult);
-        return res.status(422).json({ message: "AI returned invalid structure" });
+          console.error("[checkUrl] Invalid AI response structure:", aiResult);
+          return res.status(422).json({ message: "AI returned invalid structure" });
       }
 
       console.log("[checkUrl] AI result validated successfully");
+      console.log("[checkUrl] Full AI response:", JSON.stringify(aiResponse.data));
+      console.log("[checkUrl] risk_score value:", aiResponse.data.risk_score);
+      console.log("[checkUrl] score value:", aiResponse.data.score);
     } catch (aiErr) {
       console.error("[checkUrl] AI service error:", aiErr.message);
       if (aiErr.response?.data) {
@@ -60,8 +63,8 @@ const checkUrl = async (req, res) => {
     // Extract data dengan fallback values
     const decision = aiResult.decision || "NORMAL";
     const isGambling = decision === "JUDI ONLINE";
-    const riskScore = aiResult.score ?? 0;
-    const htmlTitle = aiResult.title || "N/A";
+    const riskScore = aiResult.risk_score ?? 0;
+    const htmlTitle = aiResult.url || normalizedUrl;
     const riskLevel = aiResult.risk_level || "Rendah";
     const category = aiResult.category || "Uncategorized";
     const detectedKeywords = aiResult.detected_keywords || [];

@@ -44,8 +44,8 @@ function ResultContent() {
     detectedAt = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  const isUnsafe = status === 'Tidak Aman' || status === 'JUDI' || riskScore > 50;
-  const riskBadgeColor = riskScore > 60 ? 'bg-red-600' : riskScore > 30 ? 'bg-yellow-500' : 'bg-green-500';
+  const isUnsafe = status === 'Tidak Aman' || riskScore > 30;
+  const riskBadgeColor = riskScore > 70 ? 'bg-red-600' : riskScore > 30 ? 'bg-yellow-500' : 'bg-green-500';
 
   return (
     <div className="max-w-2xl w-full mx-auto text-center space-y-8 animate-in fade-in zoom-in duration-500">
