@@ -22,7 +22,6 @@ async def scrape_site(url: str) -> dict:
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
 
-    # Jalankan requests di thread pool agar tidak block event loop
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, _requests_scrape, url)
 

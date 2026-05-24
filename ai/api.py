@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from predictor import HybridPredictor
-from .utils.crawler import scrape_site
+from utils.crawler import scrape_site
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -10,11 +10,9 @@ load_dotenv(dotenv_path=Path(__file__).with_name(".env"), override=False)
 
 app = FastAPI()
 
-# Ganti dengan repo HF kamu
 REPO_ID = os.getenv("REPO_ID") or "username/anti-judol-classifier"
-HF_TOKEN = os.getenv("HF_TOKEN") # Ambil dari .env jika private
+HF_TOKEN = os.getenv("HF_TOKEN")
 
-# Inisialisasi model saat startup agar tidak berat di tiap request
 predictor = HybridPredictor(REPO_ID, hf_token=HF_TOKEN)
 
 class URLRequest(BaseModel):
@@ -22,13 +20,25 @@ class URLRequest(BaseModel):
 
 @app.post("/api/classify")
 async def classify(req: URLRequest):
-    # Crawling
     site_data = await scrape_site(req.url)
     
-    if site_data['status'] == 'error':
-        return {"status": "error", "message": site_data['error']}
+    if site_data['status'] in ('error', 'blocked'):
+        result = predictor.predict(req.url, '', '')
+    else:
+        result = predictor.predict(
+            site_data['url'],
+            site_data.get('title', ''),
+            site_data.get('content', '')
+        )
     
-    # Prediksi
-    result = predictor.predict(site_data['url'], site_data['title'], site_data['content'])
-    
-    return {"status": "success", "results": result}
+    return {
+        "url": result["url"],
+        "is_gambling": result["decision"] == "JUDI ONLINE",
+        "risk_score": result["score"],
+        "risk_level": result["risk_level"],
+        "category": result["category"],
+        "detected_keywords": result["detected_keywords"],
+        "detected_at": result["detected_at"],
+        "method_used": result["method_used"],
+        "decision": result["decision"]
+    }
