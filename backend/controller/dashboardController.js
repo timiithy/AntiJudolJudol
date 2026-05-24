@@ -148,8 +148,36 @@ const getRiskDistribution = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/dashboard/keywords
+ * Keyword frequency for word cloud
+ */
+const getKeywordCloud = async (req, res) => {
+  const db = req.app.locals.db;
+
+  const qKeywords = `
+    SELECT
+      LOWER(TRIM(keyword)) AS keyword,
+      COUNT(*)::int AS count
+    FROM keywords
+    WHERE keyword IS NOT NULL AND TRIM(keyword) <> ''
+    GROUP BY LOWER(TRIM(keyword))
+    ORDER BY count DESC
+    LIMIT 60
+  `;
+
+  try {
+    const result = await db.query(qKeywords);
+    return res.json(result.rows);
+  } catch (error) {
+    console.error("getKeywordCloud error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getDashboardTrend,
   getRiskDistribution,
+  getKeywordCloud,
 };
