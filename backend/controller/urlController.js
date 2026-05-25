@@ -12,7 +12,13 @@ const checkUrl = async (req, res) => {
   const normalizedUrl = typeof url === "string" ? url.trim() : "";
 
   if (!normalizedUrl) {
-    return res.status(400).json({ message: "URL is required and must be a non-empty string" });
+    return res.status(400).json({ message: "Input tidak boleh kosong" });
+  }
+
+  // Validasi format URL dasar
+  const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
+  if (!urlPattern.test(normalizedUrl)) {
+    return res.status(400).json({ message: "Format URL tidak valid" });
   }
 
   let id_submission;
@@ -22,7 +28,6 @@ const checkUrl = async (req, res) => {
   try {
     console.log("[checkUrl] Processing URL:", normalizedUrl);
 
-    // Save the submission immediately so the URL is not lost if classification fails.
     const submissionResult = await db.query(
       `INSERT INTO url_submission (url) VALUES ($1) RETURNING id_submission`,
       [normalizedUrl]
@@ -30,22 +35,22 @@ const checkUrl = async (req, res) => {
     id_submission = submissionResult.rows[0].id_submission;
     console.log("[checkUrl] URL submission recorded:", id_submission);
 
-    // 2. Panggil AI service untuk klasifikasi
     let aiResult;
     try {
       console.log("[checkUrl] Calling AI service at:", AI_SERVICE_URL);
       const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/classify`, { url: normalizedUrl });
       console.log("[checkUrl] AI response received:", JSON.stringify(aiResponse.data));
 
-      if (aiResponse.data.status === "error") {
+      // Handle semua status error dari FastAPI
+      const aiStatus = aiResponse.data.status;
+      if (aiStatus && ["error", "invalid", "non_standard_port", "thin_content"].includes(aiStatus)) {
         return res.status(422).json({ message: aiResponse.data.message || "AI gagal memproses URL" });
       }
 
-      // Validasi struktur response AI
       aiResult = aiResponse.data;
       if (!aiResult || typeof aiResult !== "object") {
-          console.error("[checkUrl] Invalid AI response structure:", aiResult);
-          return res.status(422).json({ message: "AI returned invalid structure" });
+        console.error("[checkUrl] Invalid AI response structure:", aiResult);
+        return res.status(422).json({ message: "AI returned invalid structure" });
       }
 
       console.log("[checkUrl] AI result validated successfully");
@@ -60,7 +65,6 @@ const checkUrl = async (req, res) => {
       return res.status(503).json({ message: "AI service tidak tersedia, coba lagi nanti" });
     }
 
-    // Extract data dengan fallback values
     const decision = aiResult.decision || "NORMAL";
     const isGambling = decision === "JUDI ONLINE";
     const riskScore = aiResult.risk_score ?? 0;
@@ -73,7 +77,6 @@ const checkUrl = async (req, res) => {
 
     console.log("[checkUrl] AI Result parsed - isGambling:", isGambling, "score:", riskScore);
 
-    // Persist classification atomically.
     const client = await db.connect();
     try {
       await client.query("BEGIN");
@@ -124,7 +127,6 @@ const checkUrl = async (req, res) => {
       client.release();
     }
 
-    // 3. Return hasil lengkap ke FE
     const responseData = {
       id_submission,
       id_process,

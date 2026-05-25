@@ -118,22 +118,85 @@ export default function Hero() {
   const [scanError, setScanError] = useState('')
   const router = useRouter()
 
+  // Fungsi validasi URL di frontend SEBELUM kirim ke AI
+  const validateUrlFormat = (inputUrl) => {
+    const trimmedUrl = inputUrl.trim()
+    
+    // 1. Check kosong
+    if (!trimmedUrl) {
+      return { valid: false, error: 'URL tidak boleh kosong' }
+    }
+
+    // 2. Add https:// jika belum ada scheme
+    let fullUrl = trimmedUrl
+    if (!trimmedUrl.startsWith(('http://', 'https://'))) {
+      fullUrl = 'https://' + trimmedUrl
+    }
+
+    // 3. Cek karakter invalid (spasi, $, ^, !, dll)
+    if (/[\s\$\^\*\!\#\@\%]/.test(fullUrl)) {
+      return { valid: false, error: 'Format URL tidak valid. ' }
+    }
+
+    // 4. Parse URL untuk cek struktur
+    try {
+      const urlObj = new URL(fullUrl)
+      
+      // 5. Domain harus punya dot (harus punya TLD)
+      const hostname = urlObj.hostname
+      if (!hostname.includes('.')) {
+        return { valid: false, error: 'Format URL tidak valid.' }
+      }
+
+      // 6. Check port non-standar
+      const port = urlObj.port
+      const protocol = urlObj.protocol
+      
+      if (port) {
+        // http standard port: 80, https standard port: 443
+        const isStandardPort = (protocol === 'https:' && port === '443') || (protocol === 'http:' && port === '80')
+        if (!isStandardPort) {
+          return { 
+            valid: false, 
+            error: `Port non-standar (${port}) terdeteksi.` 
+          }
+        }
+      }
+
+      // 7. Check jika localhost atau IP address lokal (127.0.0.1, dll)
+      if (hostname === 'localhost' || hostname.startsWith('127.') || hostname === '0.0.0.0') {
+        return { valid: false, error: 'URL lokal tidak dapat dianalisis.' }
+      }
+
+      return { valid: true, fullUrl }
+    } catch (err) {
+      return { valid: false, error: 'Format URL tidak valid.' }
+    }
+  }
+
 const handleScan = async (e) => {
   e.preventDefault()
   if (!url.trim()) return
+
+  // Validasi URL di FRONTEND dulu sebelum kirim ke AI
+  const validation = validateUrlFormat(url)
+  if (!validation.valid) {
+    setScanError(validation.error)
+    return // STOP - jangan lanjut ke AI jika tidak valid
+  }
 
   setIsScanning(true)
   setScanError('')
 
   try {
-    console.log('[handleScan] Starting scan for URL:', url.trim())
+    console.log('[handleScan] URL passed frontend validation:', validation.fullUrl)
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 detik timeout
 
     const res = await fetch(`${BACKEND_URL}/api/check-url`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url.trim() }),
+      body: JSON.stringify({ url: validation.fullUrl }), // Kirim URL yang sudah divalidasi
       signal: controller.signal,
     })
 
@@ -150,6 +213,10 @@ const handleScan = async (e) => {
     }
 
     const data = jsonResponse
+    if (data.status && data.status !== 'success' && !data.url) {
+      throw new Error(data.message || 'Terjadi kesalahan')
+    }
+
     if (!data || typeof data !== 'object' || !data.url) {
       console.error('[handleScan] Invalid response structure:', data)
       throw new Error('Respons server tidak valid. Coba lagi.')
@@ -258,7 +325,11 @@ const handleScan = async (e) => {
                 id="url-input"
                 type="text"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value)
+                  // Auto-clear error ketika user mulai mengetik
+                  if (scanError) setScanError('')
+                }}
                 placeholder="Ada situs yang mencurigakan?"
                 disabled={isScanning}
                 className="flex-1 bg-transparent outline-none border-none italic font-display text-sm text-deep-earth/80 placeholder:text-deep-earth/50 placeholder:italic px-4 py-2 disabled:opacity-50"
@@ -279,11 +350,15 @@ const handleScan = async (e) => {
               </button>
               
             </form>
-            {scanError ? (
-              <p className="mt-3 text-sm text-red-500 font-sans max-w-sm">
-                {scanError}
-              </p>
-            ) : null}
+            {scanError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <p className="text-sm text-red-700 font-sans">
+                    {scanError}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
