@@ -65,6 +65,22 @@ class HybridPredictor:
         return mapping[winning_key]
 
     def predict(self, url, title, content):
+        # 0. Safety check: konten tidak boleh terlalu sedikit (backup validation)
+        word_count = len((title + " " + content).split())
+        if word_count < 50 and content:  # content kosong OK (untuk blocked sites)
+            return {
+                "url": url,
+                "title": title,
+                "decision": "NORMAL",
+                "category": "Konten Tidak Cukup",
+                "score": 0.0,
+                "risk_level": "Rendah",
+                "method_used": "Content Validation",
+                "detected_keywords": [],
+                "detected_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "note": f"Halaman memiliki {word_count} kata (minimum 50 kata diperlukan)"
+            }
+        
         # 1. Cek whitelist domain terpercaya dulu
         if self._is_trusted_domain(url):
             return {

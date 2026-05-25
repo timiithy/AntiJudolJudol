@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from predictor import HybridPredictor
 from utils.crawler import scrape_site
@@ -19,22 +19,40 @@ class URLRequest(BaseModel):
     
 @app.post("/api/classify")
 async def classify(req: URLRequest):
-    try:
-        site_data = await scrape_site(req.url)
-        if site_data.get('status') != 'success':
-            return site_data
+    site_data = await scrape_site(req.url)
 
-        # Proses prediksi
-        result = predictor.predict(site_data['url'], site_data['title'], site_data['content'])
+    # Semua status non-success yang harus dikembalikan langsung ke client
+    if site_data['status'] in ('invalid', 'non_standard_port', 'thin_content'):
+        raise HTTPException(
+            status_code=400, 
+            detail={"status": site_data['status'], "message": site_data['error']}
+        )
 
-        clean_results = {}
-        for key, value in result.items():
-            if hasattr(value, 'item'): 
-                clean_results[key] = value.item()
-            else:
-                clean_results[key] = value
+    # 404 dan error koneksi => jangan proses AI, langsung return error
+    if site_data['status'] == 'error':
+        raise HTTPException(
+            status_code=400,
+            detail={"status": "error", "message": site_data['error']}
+        )
 
-        return {"status": "success", "results": clean_results}
-        
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    # Hanya blocked yang tetap diproses AI dari URL saja
+    if site_data['status'] == 'blocked':
+        result = predictor.predict(req.url, '', '')
+    else:
+        result = predictor.predict(
+            site_data['url'],
+            site_data.get('title', ''),
+            site_data.get('content', '')
+        )
+
+    return {
+        "url": result["url"],
+        "is_gambling": result["decision"] == "JUDI ONLINE",
+        "risk_score": result["score"],
+        "risk_level": result["risk_level"],
+        "category": result["category"],
+        "detected_keywords": result["detected_keywords"],
+        "detected_at": result["detected_at"],
+        "method_used": result["method_used"],
+        "decision": result["decision"]
+    }
