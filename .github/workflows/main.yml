@@ -77,13 +77,16 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
- 
+
+      - name: Install pytest
+        working-directory: ./ai
+        run: pip install pytest
+
       - name: Copy test file
         run: |
           mkdir -p ./ai/tests
           cp .github/tests/test_ai.py ./ai/tests/test_ai.py
- 
+
       - name: Run tests (AI)
         working-directory: ./ai
         run: python -m pytest tests/test_ai.py -v
