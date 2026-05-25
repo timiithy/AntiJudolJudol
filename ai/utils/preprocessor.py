@@ -8,6 +8,7 @@ class Preprocessor:
             meta = json.load(f)
         self.patterns = meta['patterns']
         self.gov_tlds = meta['gov_tlds']
+        # Tambahkan gambling_tlds dari metadata untuk fitur is_suspicious_tld
         self.gambling_tlds = meta.get('gambling_tlds', ['.xyz', '.pw', '.top', '.site', '.online', '.vip'])
 
     def clean_text(self, text):
@@ -37,6 +38,8 @@ class Preprocessor:
         
         # 3. Hitung Density
         kw_density = total_keywords / (word_count + 1)
+
+        # Temukan keyword yang muncul untuk output user
         found_keywords = []
         for cat, kws in self.patterns.items():
             for kw in kws:
