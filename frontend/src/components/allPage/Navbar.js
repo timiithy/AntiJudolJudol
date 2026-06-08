@@ -15,25 +15,17 @@ export default function Navbar() {
           Home
         </Link>
 
-        {/* Dashboard */}
+        {/* Statistics - Real-time */}
         <Link
-          href="#dashboard"
-          className="text-deep-earth/70 hover:text-secondary font-sans font-semibold text-sm px-6 py-2 rounded-full transition-all duration-200 hover:bg-secondary/5"
-        >
-          Database
-        </Link>
-
-        {/* Statistics */}
-        <Link
-          href="#faq"
+          href="#live-statistics"
           className="flex items-center gap-2 text-deep-earth/70 hover:text-secondary font-sans font-semibold text-sm px-6 py-2 rounded-full transition-all duration-200 hover:bg-secondary/5"
         >
           Statistics
         </Link>
 
-        {/* Export */}
+        {/* Export - Blacklist Database */}
         <Link
-          href="#faq"
+          href="#blacklist-database"
           className="flex items-center gap-2 text-deep-earth/70 hover:text-secondary font-sans font-semibold text-sm px-6 py-2 rounded-full transition-all duration-200 hover:bg-secondary/5"
         >
           Export

@@ -9,8 +9,8 @@ const stats = [
   {
     label: 'Total URLs',
     sublabel: 'Scanned',
-    value: '1,234,356',
-    sub: '+ 1,200 today',
+    value: '223',
+    sub: '+ 5 today',
     badge: 'Live',
     badgeColor: 'teal',
     icon: <BiScan size={22} />,
@@ -18,8 +18,8 @@ const stats = [
   {
     label: 'Gambling Sites',
     sublabel: 'Detected',
-    value: '34,700',
-    sub: '+ 100 today',
+    value: '185',
+    sub: '+ 4 today',
     badge: 'Aktif',
     badgeColor: 'red',
     icon: <AiOutlineWarning size={22} />,
@@ -27,8 +27,8 @@ const stats = [
   {
     label: 'Verified',
     sublabel: 'Safe Sites',
-    value: '800,000',
-    sub: '+ 3,491 today',
+    value: '38',
+    sub: '+ 1 today',
     badge: 'Aman',
     badgeColor: 'teal',
     icon: <GoShieldCheck size={22} />,
