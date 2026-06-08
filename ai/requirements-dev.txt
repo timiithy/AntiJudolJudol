@@ -1,0 +1,26 @@
+# Development dependencies for testing
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+
+# Main dependencies (from requirements.txt)
+torch
+transformers
+xgboost
+pandas
+numpy
+beautifulsoup4
+requests
+playwright
+urllib3
+scikit-learn
+fastapi
+uvicorn
+python-dotenv
+joblib
+huggingface_hub
+accelerate
+lxml
