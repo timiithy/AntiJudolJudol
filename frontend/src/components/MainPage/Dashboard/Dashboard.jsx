@@ -17,7 +17,7 @@ export default function Dashboard() {
       <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col gap-20">
         
         {/* Hero Section: Live Statistics */}
-        <div className="flex flex-col gap-10">
+        <div id="live-statistics" className="flex flex-col gap-10">
           <Live />
         </div>
 
@@ -36,7 +36,7 @@ export default function Dashboard() {
           </div>
 
           {/* Blacklist Database */}
-          <div className="flex flex-col gap-6">
+          <div id="blacklist-database" className="flex flex-col gap-6">
             <div className="flex items-center gap-6">
               <h2 className="font-display font-bold text-2xl text-deep-earth whitespace-nowrap">
                 Blacklist Database
